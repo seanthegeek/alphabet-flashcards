@@ -44,6 +44,6 @@ Use the [Windows Subsystem for Linux (WSL)](https://learn.microsoft.com/en-us/wi
 ```bash
 python3 -m venv .venv
 source .venv/bin/activate
-pip install --upgrade setuptools wheel
+pip install --upgrade pip setuptools wheel
 pip install -r requirements.txt
 ```
