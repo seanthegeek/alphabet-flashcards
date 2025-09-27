@@ -18,7 +18,7 @@ import json
 from pathlib import Path
 from typing import Dict, Iterable, List, Optional, Tuple
 
-from PIL import Image, ImageDraw, ImageFont
+from PIL import Image, ImageDraw, ImageFont, ImageChops, ImageOps
 
 # ----------------------------------
 # Font candidates (used if --font not provided)
@@ -89,7 +89,9 @@ def resolve_font_path(preferred: Optional[Path]) -> Optional[Path]:
     return None
 
 
-def load_font_exact(font_path: Optional[Path], size: int) -> ImageFont.FreeTypeFont | ImageFont.ImageFont:
+def load_font_exact(
+    font_path: Optional[Path], size: int
+) -> ImageFont.FreeTypeFont | ImageFont.ImageFont:
     """Load a TrueType font at an exact size; fall back to PIL default if unavailable."""
     if font_path is not None and font_path.exists():
         try:
@@ -99,7 +101,9 @@ def load_font_exact(font_path: Optional[Path], size: int) -> ImageFont.FreeTypeF
     return ImageFont.load_default()
 
 
-def measure_text(draw: ImageDraw.ImageDraw, text: str, font: ImageFont.ImageFont) -> Tuple[int, int]:
+def measure_text(
+    draw: ImageDraw.ImageDraw, text: str, font: ImageFont.ImageFont
+) -> Tuple[int, int]:
     """Return (width, height) of rendered text with the given font."""
     bbox = draw.textbbox((0, 0), text, font=font)
     return (bbox[2] - bbox[0], bbox[3] - bbox[1])
@@ -151,6 +155,51 @@ def fit_image(img: Image.Image, max_w: int, max_h: int) -> Image.Image:
     return img.resize(new_size, Image.LANCZOS)
 
 
+def autocrop_image(
+    img: Image.Image,
+    bg_rgb: tuple[int, int, int] = (255, 255, 255),
+    tolerance: int = 10,
+    pad_ratio: float = 0.02,
+) -> Image.Image:
+    """
+    Trim outer borders that are either fully transparent OR close to a uniform background color.
+    - Works for RGBA (alpha) and RGB images.
+    - 'tolerance' lets us ignore slight antialiasing around edges.
+    - Adds a small uniform padding after crop so art doesn't touch the edge.
+    """
+    mode = img.mode
+    # 1) If RGBA, try alpha-based crop first
+    if mode == "RGBA":
+        alpha = img.split()[3]
+        mask = alpha.point(lambda a: 255 if a > 0 else 0)
+        bbox = mask.getbbox()
+        if bbox:
+            img = img.crop(bbox)
+
+    # 2) Now trim near-white (or chosen bg) even if still RGBA (using RGB view)
+    if img.mode not in ("RGB", "RGBA"):
+        img = img.convert("RGBA")
+
+    # Work on an RGB copy for background-diff
+    rgb = img.convert("RGB")
+    bg = Image.new("RGB", rgb.size, bg_rgb)
+    # Difference from the background
+    diff = ImageChops.difference(rgb, bg)
+    # Convert to grayscale and threshold with tolerance
+    gray = diff.convert("L")
+    thresh = gray.point(lambda p: 255 if p > tolerance else 0)
+    bbox2 = thresh.getbbox()
+
+    if bbox2:
+        img = img.crop(bbox2)
+
+    # 3) Add a small uniform padding
+    pad = max(1, int(min(img.size) * pad_ratio))
+    if img.mode == "RGBA":
+        return ImageOps.expand(img, border=pad, fill=(0, 0, 0, 0))
+    return ImageOps.expand(img, border=pad, fill=bg_rgb)
+
+
 def pil_to_base64_png(img: Image.Image) -> str:
     """Encode a PIL image to base64 PNG string."""
     buf = io.BytesIO()
@@ -173,6 +222,7 @@ def hex_to_rgb(hex_str: str) -> Tuple[int, int, int]:
     g = int(s[2:4], 16)
     b = int(s[4:6], 16)
     return (r, g, b)
+
 
 # ----------------------------------
 # Layout
@@ -198,6 +248,7 @@ class Layout:
         self.word_y = int(0.80 * height)
         self.word_box_w = int(0.90 * width)
         self.word_box_h = int(0.12 * height)
+
 
 # ----------------------------------
 # SVG composition
@@ -240,6 +291,7 @@ def compose_svg(
 </svg>
 """
 
+
 # ----------------------------------
 # Build Logic
 # ----------------------------------
@@ -262,6 +314,10 @@ def build_flashcard_for_pair(
     """Render both SVG and PNG flashcards for (letter, word)."""
     with Image.open(illustration_path) as src_img:
         src_img = src_img.convert("RGBA")
+        # Trim transparent or near-white borders so all illustrations scale consistently
+        src_img = autocrop_image(
+            src_img, bg_rgb=(255, 255, 255), tolerance=10, pad_ratio=0.02
+        )
 
         # Compute the image area between the letters box and word box, with margins.
         max_w = layout.width - 2 * layout.margin
@@ -363,25 +419,66 @@ def build_flashcard_for_pair(
         out_svg_path.parent.mkdir(parents=True, exist_ok=True)
         out_svg_path.write_text(svg_text, encoding="utf-8")
 
+
 # ----------------------------------
 # CLI
 # ----------------------------------
 
 
 def parse_args() -> argparse.Namespace:
-    parser = argparse.ArgumentParser(description="Compose SVG + PNG flashcards from illustration images.")
-    parser.add_argument("--mapping", type=Path, required=True, help="Path to mapping.json")
-    parser.add_argument("--images", type=Path, required=True, help="Directory of source illustrations.")
-    parser.add_argument("--out", type=Path, required=True, help="Output directory (contains svgs/ and pngs/).")
-    parser.add_argument("--width", type=int, default=1500, help="Flashcard width in pixels.")
-    parser.add_argument("--height", type=int, default=2500, help="Flashcard height in pixels.")
-    parser.add_argument("--font", type=Path, default=None, help="Optional path to a TrueType font file.")
-    parser.add_argument("--letter_color", type=str, default="#FF0000", help='Hex color for letters (default: red).')
-    parser.add_argument("--word_color", type=str, default="#000000", help='Hex color for words (default: black).')
-    parser.add_argument("--svg_font_family", type=str, default="Andika", help="SVG font-family fallback chain.")
-    parser.add_argument("--letters_font_size", type=int, default=None, help="Override font size for letters.")
-    parser.add_argument("--word_font_size", type=int, default=None, help="Override font size for word.")
+    parser = argparse.ArgumentParser(
+        description="Compose SVG + PNG flashcards from illustration images."
+    )
+    parser.add_argument(
+        "--mapping", type=Path, required=True, help="Path to mapping.json"
+    )
+    parser.add_argument(
+        "--images", type=Path, required=True, help="Directory of source illustrations."
+    )
+    parser.add_argument(
+        "--out",
+        type=Path,
+        required=True,
+        help="Output directory (contains svgs/ and pngs/).",
+    )
+    parser.add_argument(
+        "--width", type=int, default=1500, help="Flashcard width in pixels."
+    )
+    parser.add_argument(
+        "--height", type=int, default=2500, help="Flashcard height in pixels."
+    )
+    parser.add_argument(
+        "--font", type=Path, default=None, help="Optional path to a TrueType font file."
+    )
+    parser.add_argument(
+        "--letter_color",
+        type=str,
+        default="#FF0000",
+        help="Hex color for letters (default: red).",
+    )
+    parser.add_argument(
+        "--word_color",
+        type=str,
+        default="#000000",
+        help="Hex color for words (default: black).",
+    )
+    parser.add_argument(
+        "--svg_font_family",
+        type=str,
+        default="Andika",
+        help="SVG font-family fallback chain.",
+    )
+    parser.add_argument(
+        "--letters_font_size",
+        type=int,
+        default=None,
+        help="Override font size for letters.",
+    )
+    parser.add_argument(
+        "--word_font_size", type=int, default=None, help="Override font size for word."
+    )
     return parser.parse_args()
+
 
 # ----------------------------------
 # Main
