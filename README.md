@@ -12,6 +12,8 @@ Almost this entire project was created by interacting with GPT-5, including the 
 
 To be clear, the AI did not generate all of this correctly on the first or even 20th prompt. It was a collaborative effort between myself and GPT-5 that required a lot of clarification from me to get this end result, including image style critiques bug reports, and even getting GPT-5 to admit that it cannot generate SVG images. Still, with the AI I was able to get to this end result in my free time over a couple of days. Which is equally impressive and worrying. I have lots of Python code skills, but no art skills, and I'd never done image generation before. On one hand, this lets people create new things in record time, on the other hand it cheapens the value of human creativity, which is sad and disturbing.
 
+You can review the full chat using [this link](https://chatgpt.com/share/68d7faa2-3478-800b-94d1-1beb3c95accb).
+
 Anyway, I hope someone finds this useful.
 
 ## Licensing
@@ -20,7 +22,7 @@ Code: MIT (see `LICENSE-CODE.txt`)
 
 Images: CC0 (see `LICENSE-IMAGES.txt`)
 
-Fonts: OFL (see `fonts/OFL.txt`)
+Fonts: OFL (see `LICENSE-FONTS.txt`)
 
 ## Fonts
 
