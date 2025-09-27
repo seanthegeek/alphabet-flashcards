@@ -4,6 +4,7 @@ import argparse
 import json
 from pathlib import Path
 
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--svgs", default="data/svgs")
@@ -51,9 +52,9 @@ def main():
         for x in sorted(extra_pngs):
             print(" -", x)
 
-
     if not (missing_svgs or missing_pngs or extra_svgs or extra_pngs):
         print("\n✅ All filenames match mapping.json")
+
 
 if __name__ == "__main__":
     main()
