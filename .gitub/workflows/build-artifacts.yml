@@ -1,0 +1,69 @@
+name: Build and Test Flashcards
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  build:
+    name: Generate Flashcards
+    runs-on: ubuntu-latest
+
+    steps:
+      # 1. Check out repository
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # 2. Install system dependencies
+      - name: Install system dependencies
+        run: |
+          sudo apt update
+          sudo apt install -y \
+            libcairo2 libcairo2-dev \
+            libpango1.0-dev \
+            libgdk-pixbuf2.0-dev \
+            libffi-dev pkg-config python3-venv
+
+      # 3. Set up Python
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      # 4. Install Python dependencies
+      - name: Install Python dependencies
+        run: |
+          python3 -m venv .venv
+          source .venv/bin/activate
+          pip install -U pip
+          pip install -U -r requirements.txt
+
+      # 5. Run checks
+      - name: Run code linting
+        run: |
+          source .venv/bin/activate
+          pip install ruff
+          ruff check scripts
+
+      # 6. Generate flashcards
+      - name: Build flashcards
+        run: |
+          source .venv/bin/activate
+          make all
+
+      # 7. Package flashcards into ZIPs
+      - name: Package outputs
+        run: |
+          source .venv/bin/activate
+          make dist
+
+      # 8. Upload ZIP files as artifacts
+      - name: Upload flashcards ZIPs
+        uses: actions/upload-artifact@v4
+        with:
+          name: flashcards
+          path: dist/
