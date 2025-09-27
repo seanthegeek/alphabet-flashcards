@@ -1,4 +1,4 @@
-# Alphabet Flashcard Illustrations Prompts
+# Alphabet Flashcard Illustration Prompts
 
 These prompts generate clean, child-friendly cartoon illustrations for flashcards.  
 Each prompt produces:
