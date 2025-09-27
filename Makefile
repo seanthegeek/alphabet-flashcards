@@ -54,7 +54,7 @@ images: fonts-check
 		--letter_color '$(LETTER_COLOR)' \
 	    --word_color '$(WORD_COLOR)' \
 		--svg_font_family '$(SVG_FONT_FAMILY)' \
-		$(if $(FONT_PATH),--font $(FONT_PATH)) \
+		$(if $(FONT_PATH),--font '$(FONT_PATH)') \
 		$(if $(LETTERS_FONT_SIZE),--letters_font_size $(LETTERS_FONT_SIZE)) \
 		$(if $(WORD_FONT_SIZE),--word_font_size $(WORD_FONT_SIZE))
 
@@ -73,7 +73,7 @@ dist: clean
 		WORD_FONT_SIZE=$(WORD_FONT_SIZE) \
 		LETTER_COLOR='$(LETTER_COLOR)' \
 		WORD_COLOR='$(WORD_COLOR)' \
-		FONT_PATH=$(FONT_PATH) \
+		FONT_PATH=$'(FONT_PATH)' \
 		SVG_FONT_FAMILY=$(SVG_FONT_FAMILY)
 	mkdir -p $(DIST_DIR)
 	zip -j -r $(DIST_DIR)/flashcards_svgs.zip $(SVG_DIR)
