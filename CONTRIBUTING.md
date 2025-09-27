@@ -44,6 +44,6 @@ Use the [Windows Subsystem for Linux (WSL)](https://learn.microsoft.com/en-us/wi
 ```bash
 python3 -m venv .venv
 source .venv/bin/activate
-pip install --upgrade pipesome—here’s a clean update that makes Andika the default for SVG (referenced by name, not embedded) and keeps PNGs consistent by pointing Pillow to the TTF in your repo. No SVG font embedding is ad setuptools wheel
+pip install --upgrade setuptools wheel
 pip install -r requirements.txt
 ```
