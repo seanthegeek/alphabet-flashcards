@@ -30,7 +30,7 @@ Fonts: OFL (see `LICENSE-FONTS.txt`)
 This project references the **Andika** font for SVGs by name only (no embedding),
 and uses the TTF file for PNG rendering to ensure consistent raster output.
 
-- Font file (recommended to include in repo): `fonts/Andika-Regular.ttf`
+- Font file (included in the repo): `fonts/Andika-Regular.ttf`
 - License: **SIL Open Font License (OFL)** — you may use, modify, and redistribute the font with the project; you may not sell the font by itself.
 
 ### SVG behavior  
