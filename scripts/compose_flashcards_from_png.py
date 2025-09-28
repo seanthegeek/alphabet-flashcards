@@ -415,29 +415,41 @@ def build_flashcard_for_pair(
                 step=3,
             )
 
-        # ----- Draw top letters with glyph-top alignment (prevents clipping) -----
+        # ----- Draw top letters (glyph-BOTTOM alignment) -----
         letters_bbox = draw.textbbox((0, 0), letters_text, font=letters_font)
-        top_padding = int(0.006 * layout.height)
-        letters_draw_y = layout.letters_y + top_padding - letters_bbox[1]
+
+        # Fixed baseline for letters: top area of card
+        letters_top_line = layout.letters_y
+
+        # Place so the BOTTOM of the letters sits exactly at the letters_top_line
+        letters_draw_y = letters_top_line - letters_bbox[3]
+
         draw.text(
             (layout.letters_x, letters_draw_y),
             letters_text,
             font=letters_font,
             fill=letters_color_rgb,
-        )
-
+)
         # Paste illustration
         canvas.paste(fitted, (img_x, img_y), fitted)
 
-        # ----- Draw bottom word centered, with glyph-top alignment -----
+        # ----- Draw bottom word centered, with glyph-BOTTOM alignment -----
         word_bbox = draw.textbbox((0, 0), word_text, font=word_font)
         bottom_padding = int(0.006 * layout.height)
-        word_top_line = layout.word_y + bottom_padding
-        word_draw_y = word_top_line - word_bbox[1]
-        # center horizontally
+
+        # Fixed bottom line for ALL cards: bottom of the word box minus padding
+        word_bottom_line = layout.word_y + layout.word_box_h - bottom_padding
+
+        # To place so the GLYPH BOTTOM sits at word_bottom_line:
+        # y we pass to draw.text is the baseline; bottom = baseline + bbox[3]
+        word_draw_y = word_bottom_line - word_bbox[3]
+
+        # Center horizontally
         word_w = word_bbox[2] - word_bbox[0]
         word_x = int(layout.width / 2 - word_w / 2)
+
         draw.text((word_x, word_draw_y), word_text, font=word_font, fill=word_color_rgb)
+
 
         out_png_path.parent.mkdir(parents=True, exist_ok=True)
         canvas.save(out_png_path, format="PNG")
