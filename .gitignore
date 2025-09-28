@@ -12,3 +12,6 @@ Thumbs.db
 data/svgs/*
 data/pngs/*
 dist/
+
+# Scratch code
+scratch.py
