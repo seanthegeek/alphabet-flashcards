@@ -17,6 +17,8 @@ jobs:
       # 1. Check out repository
       - name: Checkout code
         uses: actions/checkout@v4
+        with:
+          lfs: true
 
       # 2. Install system dependencies
       - name: Install system dependencies
