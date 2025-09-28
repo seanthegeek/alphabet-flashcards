@@ -73,8 +73,8 @@ dist: clean
 		WORD_FONT_SIZE=$(WORD_FONT_SIZE) \
 		LETTER_COLOR='$(LETTER_COLOR)' \
 		WORD_COLOR='$(WORD_COLOR)' \
-		FONT_PATH=$'(FONT_PATH)' \
-		SVG_FONT_FAMILY=$(SVG_FONT_FAMILY)
+		FONT_PATH='$(FONT_PATH)' \
+		SVG_FONT_FAMILY='$(SVG_FONT_FAMILY)'
 	mkdir -p $(DIST_DIR)
 	zip -j -r $(DIST_DIR)/flashcards_svgs.zip $(SVG_DIR)
 	zip -j -r $(DIST_DIR)/flashcards_pngs.zip $(PNG_DIR)
