@@ -147,6 +147,56 @@ def autofit_font(
     return (last_good_font, last_good_size)
 
 
+def compute_min_letters_font_px(
+    pairs: list[tuple[str, str]],
+    box_w: int,
+    box_h: int,
+    ttf_path: Optional[Path],
+) -> int:
+    """
+    Find the maximum font size that fits the letters string for *every* card.
+    Returns the minimum of per-card auto-fit sizes.
+    """
+    min_px: Optional[int] = None
+    for letter, _ in pairs:
+        text = f"{letter} {letter.lower()}"
+        _font, px = autofit_font(
+            text=text,
+            max_w=box_w,
+            max_h=box_h,
+            font_path=ttf_path,
+            start_size=24,
+            step=4,
+        )
+        min_px = px if min_px is None else min(min_px, px)
+    # Fallback just in case
+    return min_px or max(24, int(min(box_w, box_h) * 0.25))
+
+def compute_min_word_font_px(
+    pairs: list[tuple[str, str]],
+    box_w: int,
+    box_h: int,
+    ttf_path: Optional[Path],
+) -> int:
+    """
+    Find the maximum font size that fits the bottom word for *every* card.
+    Returns the minimum of per-card auto-fit sizes across all words.
+    """
+    min_px: Optional[int] = None
+    for _, word in pairs:
+        _font, px = autofit_font(
+            text=word,
+            max_w=box_w,
+            max_h=box_h,
+            font_path=ttf_path,
+            start_size=24,
+            step=3,
+        )
+        min_px = px if min_px is None else min(min_px, px)
+    # Safe fallback in the unlikely case nothing computed
+    return min_px or max(24, int(min(box_w, box_h) * 0.25))
+
+
 def fit_image(img: Image.Image, max_w: int, max_h: int) -> Image.Image:
     """Return a resized copy of img that fits within (max_w, max_h) preserving aspect."""
     w, h = img.size
@@ -498,6 +548,28 @@ def main() -> None:
     letters_color_rgb = hex_to_rgb(args.letter_color)
     word_color_rgb = hex_to_rgb(args.word_color)
 
+    # Use a consistent letters font size across all cards unless user overrides it.
+    computed_letters_px: Optional[int] = None
+    if args.letters_font_size is None:
+        computed_letters_px = compute_min_letters_font_px(
+            pairs=pairs,
+            box_w=layout.letters_box_w,
+            box_h=layout.letters_box_h,
+            ttf_path=ttf_path,
+        )
+
+    # Use a consistent word font size across all cards unless user overrides it.
+    computed_word_px: Optional[int] = None
+    if args.word_font_size is None:
+        computed_word_px = compute_min_word_font_px(
+            pairs=pairs,
+            box_w=layout.word_box_w,
+            box_h=layout.word_box_h,
+            ttf_path=ttf_path,
+    )
+
+
+
     missing: List[str] = []
 
     for letter, word in pairs:
@@ -521,8 +593,8 @@ def main() -> None:
             word_color_rgb=word_color_rgb,
             svg_font_family=args.svg_font_family,
             ttf_path=ttf_path,
-            letters_font_override=args.letters_font_size,
-            word_font_override=args.word_font_size,
+            letters_font_override=args.letters_font_size or computed_letters_px,
+            word_font_override=args.word_font_size or computed_word_px,
         )
 
     if missing:
