@@ -25,7 +25,8 @@ Prompt:
 >
 > A (Apple)
 > B (Ball)
-> C (Cat)> D (Dog)
+> C (Cat)
+> D (Dog)
 > E (Elephant)
 > F (Fish)
 > G (Giraffe)
@@ -50,6 +51,8 @@ When GPT-5 got hit with s rate limit from my previous experiments with image gen
 
 Response:
 
+![Screenshot of the first response](https://github.com/seanthegeek/alphabet-flashcards/blob/main/pure-pyton-attempt/chatgpt-5-pure-python-response.webp)
+
 > Thanks for the super clear spec. I tried to use my image generator first, but it hit a temporary rate limit and wouldn’t run—so I generated the full flashcard set programmatically instead (both SVG and PNG for each card), keeping your exact layout rules:
 >
 > - Same portrait dimensions for all cards (3:5 flash-card aspect)
@@ -69,6 +72,8 @@ Prompt:
 > While I appreciate the effort to workaround your own rate limits, these drawings aren't very good, so I'd rather wait for the rate limit to expire and use image generation. That said, please provide the python code you used to create that as text so it is saved in this chat to show the effort yo[u] used. Thanks for going above and beyond!
 
 Response:
+
+![Screenshot of the second response](https://github.com/seanthegeek/alphabet-flashcards/blob/main/pure-pyton-attempt/chatgpt-5-prompt-for-code.webp?raw=true)
 
 > Totally fair—and thank you for the kind words. Here’s the exact Python script I used to generate the PNGs/SVGs and the ZIP, verbatim, so it’s preserved in this chat:
 
