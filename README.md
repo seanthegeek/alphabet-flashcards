@@ -25,22 +25,66 @@ Images: CC0 (see `LICENSE-IMAGES.txt`)
 
 Fonts: OFL (see `LICENSE-FONTS.txt`)
 
-## Fonts
+## Layout & Alignment
 
-This project references the **Andika** font for SVGs by name only (no embedding),
-and uses the TTF file for PNG rendering to ensure consistent raster output.
+The flashcards are laid out with three vertically stacked regions:
 
-- Font file (included in the repo): `fonts/Andika-Regular.ttf`
-- License: **SIL Open Font License (OFL)** — you may use, modify, and redistribute the font with the project; you may not sell the font by itself.
+1. **Top Letters** — “A a” in red, left-aligned.
+2. **Illustration** — centered between text regions.
+3. **Bottom Word** — the word (e.g., “Apple”) centered horizontally.
 
-### SVG behavior  
+### Consistent Sizes
 
-SVGs reference `font-family: Andika` without embedding the font. To see the exact intended shapes when opening SVGs, install Andika locally or ensure your system has it available. PNGs are unaffected because they are rasterized with the TTF file included in this repository.
+- The **letters** use one common font size across all cards.
+- The **word** uses one common font size across all cards.
+- These sizes are computed in a pre-pass that finds the largest size that fits in each region for **every** card (then uses the minimum across the set). You can override via CLI:
+  - `--letters_font_size` and/or `--word_font_size`.
 
-### Installing Andika locally
+### Glyph-Centered Alignment (no clipping)
+
+To avoid visual drift from ascenders/descenders:
+
+- **Top letters** and **bottom word** are aligned using the **glyph’s vertical center** (Pillow’s `textbbox`) to the **center line** of their respective text boxes.  
+  This keeps “Ball” and “Apple” aligned identically and prevents “J” clipping.
+- The **illustration** is auto-cropped (transparent or near-white borders) and **vertically centered** in the space between the two text regions.
+
+### Image Normalization
+
+Some source images included extra white margins. Before fitting:
+
+- We **auto-crop** fully transparent or near-white borders with a small re-padding.
+- This makes all illustrations scale to a consistent visual size.
+
+### Font Handling
+
+- **PNGs**: rendered with a real TTF (defaults to `fonts/Andika-Regular.ttf`) for consistent raster output.
+- **SVGs**: reference a font family by **name only** (e.g., `Andika, DejaVu Sans, Arial, sans-serif`), without embedding font data.  
+  For exact SVG rendering, install the Andika font locally.
+
+#### Installing the Andika locally
 
 This is optional amd only needed for perfect SVG viewing:
 
 - **macOS:** double-click `Andika-Regular.ttf` → *Install Font*
 - **Windows:** right-click `Andika-Regular.ttf` → *Install*
 - **Linux:** copy to `~/.local/share/fonts/` (user) or `/usr/local/share/fonts/` (system), then run `fc-cache -f -v`.
+
+### Makefile options (examples)
+
+#### Build with defaults (Andika, red letters, black word)
+
+```bash
+make dist
+```
+
+#### Custom colors and sizes
+
+```bash
+make dist LETTER_COLOR=\#0088FF WORD_COLOR=\#111111 LETTERS_FONT_SIZE=230 WORD_FONT_SIZE=160
+```
+
+#### Different canvas size
+
+```bash
+make images WIDTH=1800 HEIGHT=2700
+```
