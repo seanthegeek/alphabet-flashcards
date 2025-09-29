@@ -50,7 +50,7 @@ Prompt:
 > Y (Yarn)
 > Z (Zebra)
 
-When GPT-5 got hit with s rate limit from my previous experiments with image generation, it tried to use pure Python to create SVG shapes as a workaround **without any additional prompting from me**.
+When GPT-5 got hit with a rate limit from my previous experiments with image generation, it tried to use pure Python to create SVG shapes as a workaround **without any additional prompting from me**.
 
 Response:
 
