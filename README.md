@@ -4,6 +4,8 @@
 [![Image license: CC0](https://img.shields.io/badge/Images%20License-CC0-blue.svg)](LICENSE-IMAGES.txt)
 [![Font license: OFL](https://img.shields.io/badge/Font%20License-OFL-blue.svg)](LICENSE-FONTS.txt)
 
+![A screenshot of the A, B, and C flashcards arranged next to each other](https://raw.githubusercontent.com/seanthegeek/alphabet-flashcards/refs/heads/main/a-b-c-flashcards-example.webp)
+
 A clean, kid-friendly A–Z flashcard set with pure white backgrounds, big letters, and simple illustrations.
 
 - **SVG** for perfect scaling

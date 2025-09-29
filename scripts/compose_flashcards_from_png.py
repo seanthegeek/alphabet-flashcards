@@ -172,6 +172,7 @@ def compute_min_letters_font_px(
     # Fallback just in case
     return min_px or max(24, int(min(box_w, box_h) * 0.25))
 
+
 def compute_min_word_font_px(
     pairs: list[tuple[str, str]],
     box_w: int,
@@ -415,41 +416,42 @@ def build_flashcard_for_pair(
                 step=3,
             )
 
-        # ----- Draw top letters (glyph-BOTTOM alignment) -----
+        # ----- Draw top letters, GLYPH-CENTER aligned within the letters box -----
         letters_bbox = draw.textbbox((0, 0), letters_text, font=letters_font)
 
-        # Fixed baseline for letters: top area of card
-        letters_top_line = layout.letters_y
+        # Midline of the letters area
+        letters_center_line = layout.letters_y + layout.letters_box_h // 2
 
-        # Place so the BOTTOM of the letters sits exactly at the letters_top_line
-        letters_draw_y = letters_top_line - letters_bbox[3]
+        # Baseline so glyph center sits on the midline
+        letters_draw_y = int(
+            letters_center_line - (letters_bbox[1] + letters_bbox[3]) / 2
+        )
 
         draw.text(
             (layout.letters_x, letters_draw_y),
             letters_text,
             font=letters_font,
             fill=letters_color_rgb,
-)
+        )
+
         # Paste illustration
         canvas.paste(fitted, (img_x, img_y), fitted)
 
-        # ----- Draw bottom word centered, with glyph-BOTTOM alignment -----
+        # ----- Draw bottom word centered, with GLYPH-CENTER vertical alignment -----
         word_bbox = draw.textbbox((0, 0), word_text, font=word_font)
-        bottom_padding = int(0.006 * layout.height)
 
-        # Fixed bottom line for ALL cards: bottom of the word box minus padding
-        word_bottom_line = layout.word_y + layout.word_box_h - bottom_padding
+        # Midline of the word area
+        word_center_line = layout.word_y + layout.word_box_h // 2
 
-        # To place so the GLYPH BOTTOM sits at word_bottom_line:
-        # y we pass to draw.text is the baseline; bottom = baseline + bbox[3]
-        word_draw_y = word_bottom_line - word_bbox[3]
+        # y for draw.text is the baseline; glyph center is at (top+bottom)/2 relative to baseline.
+        # So set: baseline_y = target_center - (top + bottom)/2
+        word_draw_y = int(word_center_line - (word_bbox[1] + word_bbox[3]) / 2)
 
         # Center horizontally
         word_w = word_bbox[2] - word_bbox[0]
         word_x = int(layout.width / 2 - word_w / 2)
 
         draw.text((word_x, word_draw_y), word_text, font=word_font, fill=word_color_rgb)
-
 
         out_png_path.parent.mkdir(parents=True, exist_ok=True)
         canvas.save(out_png_path, format="PNG")
@@ -578,9 +580,7 @@ def main() -> None:
             box_w=layout.word_box_w,
             box_h=layout.word_box_h,
             ttf_path=ttf_path,
-    )
-
-
+        )
 
     missing: List[str] = []
 
